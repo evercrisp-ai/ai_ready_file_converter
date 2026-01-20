@@ -10,6 +10,7 @@ from .pdf_converter import PdfConverter
 from .pptx_converter import PptxConverter
 from .xlsx_converter import XlsxConverter
 from .image_converter import ImageConverter
+from .reverse import MarkdownToDocxConverter
 
 # Registry mapping file extensions to converter classes
 CONVERTER_REGISTRY = {
@@ -32,6 +33,9 @@ CONVERTER_REGISTRY = {
     '.tiff': ImageConverter,
     '.tif': ImageConverter,
     '.webp': ImageConverter,
+    # Markdown (reverse conversion)
+    '.md': MarkdownToDocxConverter,
+    '.markdown': MarkdownToDocxConverter,
 }
 
 # Default output formats for each file type
@@ -52,6 +56,8 @@ DEFAULT_OUTPUT_FORMATS = {
     '.tiff': 'json',
     '.tif': 'json',
     '.webp': 'json',
+    '.md': 'docx',
+    '.markdown': 'docx',
 }
 
 def get_converter(extension: str) -> type[BaseConverter] | None:
@@ -66,6 +72,15 @@ def get_supported_extensions() -> list[str]:
     """Get list of all supported file extensions."""
     return list(CONVERTER_REGISTRY.keys())
 
+def is_reverse_converter(extension: str) -> bool:
+    """Check if the extension uses a reverse converter (binary output)."""
+    converter_class = CONVERTER_REGISTRY.get(extension.lower())
+    if converter_class is None:
+        return False
+    # Check if it's a reverse converter by checking the module
+    return 'reverse' in converter_class.__module__
+
+
 __all__ = [
     'BaseConverter',
     'DocxConverter',
@@ -73,9 +88,11 @@ __all__ = [
     'PptxConverter',
     'XlsxConverter',
     'ImageConverter',
+    'MarkdownToDocxConverter',
     'CONVERTER_REGISTRY',
     'DEFAULT_OUTPUT_FORMATS',
     'get_converter',
     'get_default_format',
     'get_supported_extensions',
+    'is_reverse_converter',
 ]

@@ -634,8 +634,8 @@ body::after {
 }
 
 .status-dot.converted {
-    background: var(--success);
-    box-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
+    background: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .status-dot.error {
@@ -718,18 +718,18 @@ body::after {
     align-items: center;
     gap: var(--space-md);
     padding: var(--space-md) var(--space-lg);
-    background: var(--success-dim);
+    background: var(--accent-dim);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid rgba(52, 211, 153, 0.15);
+    border: 1px solid var(--border-accent);
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
     box-shadow: var(--shadow-sm);
 }
 
 .result-item:hover {
-    background: rgba(52, 211, 153, 0.15);
-    border-color: rgba(52, 211, 153, 0.25);
+    background: rgba(12, 192, 223, 0.12);
+    border-color: var(--accent-primary);
     transform: translateY(-1px);
 }
 
@@ -739,7 +739,7 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--success);
+    background: var(--accent-primary);
     border-radius: var(--radius-sm);
     flex-shrink: 0;
 }
@@ -828,6 +828,12 @@ body::after {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.zip-content-actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
 }
 
 /* ========================================
@@ -1029,9 +1035,9 @@ body::after {
 
 /* Copy button success state */
 .btn.copied {
-    background: var(--success-dim);
-    border-color: var(--success);
-    color: var(--success);
+    background: var(--accent-dim);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
 }
 
 /* ========================================
@@ -1064,7 +1070,7 @@ body::after {
 }
 
 .security-note svg {
-    color: var(--success);
+    color: var(--accent-primary);
 }
 
 /* ========================================

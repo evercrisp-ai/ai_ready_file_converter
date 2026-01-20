@@ -26,6 +26,11 @@ DATA_FILES = [
     ("templates", ["templates/index.html"]),
     ("static/css", ["static/css/style.css"]),
     ("static/js", ["static/js/app.js"]),
+    ("static/images", [
+        "static/images/favicon.png",
+        "static/images/icon.png",
+        "static/images/preview_image.png",
+    ]),
 ]
 
 # Packages to include

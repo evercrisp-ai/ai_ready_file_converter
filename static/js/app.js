@@ -35,6 +35,7 @@ const FILE_ICONS = {
     xlsx: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="12" width="8" height="6" rx="1"/></svg>`,
     pptx: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="12" cy="15" r="3"/></svg>`,
     image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+    markdown: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M7 15v-4l2 2 2-2v4"/><path d="M15 13l2 2 2-2"/><line x1="17" y1="11" x2="17" y2="15"/></svg>`,
     default: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`
 };
 
@@ -264,7 +265,28 @@ function renderFileList() {
         return;
     }
     
-    fileList.innerHTML = files.map(file => `
+    fileList.innerHTML = files.map(file => {
+        const isReverse = isReverseConversion(file.extension);
+        const formatToggleHtml = isReverse
+            ? `<div class="format-toggle">
+                    <button class="format-btn active" data-format="docx" disabled>
+                        .docx
+                    </button>
+               </div>`
+            : `<div class="format-toggle">
+                    <button class="format-btn ${file.output_format === 'md' ? 'active' : ''}" 
+                            data-format="md" 
+                            onclick="setFormat('${file.id}', 'md')">
+                        .md
+                    </button>
+                    <button class="format-btn ${file.output_format === 'json' ? 'active' : ''}" 
+                            data-format="json"
+                            onclick="setFormat('${file.id}', 'json')">
+                        .json
+                    </button>
+               </div>`;
+        
+        return `
         <div class="file-item" data-id="${file.id}">
             <div class="file-icon">
                 ${getFileIcon(file.extension)}
@@ -280,18 +302,7 @@ function renderFileList() {
                 </div>
             </div>
             <div class="file-actions">
-                <div class="format-toggle">
-                    <button class="format-btn ${file.output_format === 'md' ? 'active' : ''}" 
-                            data-format="md" 
-                            onclick="setFormat('${file.id}', 'md')">
-                        .md
-                    </button>
-                    <button class="format-btn ${file.output_format === 'json' ? 'active' : ''}" 
-                            data-format="json"
-                            onclick="setFormat('${file.id}', 'json')">
-                        .json
-                    </button>
-                </div>
+                ${formatToggleHtml}
                 <button class="btn-delete" onclick="deleteFile('${file.id}')" title="Remove file">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -300,7 +311,7 @@ function renderFileList() {
                 </button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function renderResultsList() {
@@ -386,13 +397,23 @@ function renderZipResult() {
             ${convertedFiles.map(file => `
                 <div class="zip-content-item">
                     <span class="zip-content-name">${escapeHtml(file.output_filename)}</span>
-                    <button class="btn btn-ghost btn-small" onclick="previewFile('${file.id}')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        Preview
-                    </button>
+                    <div class="zip-content-actions">
+                        <button class="btn btn-ghost btn-small" onclick="previewFile('${file.id}')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            Preview
+                        </button>
+                        <button class="btn btn-ghost btn-small" onclick="downloadFile('${file.id}')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download
+                        </button>
+                    </div>
                 </div>
             `).join('')}
         </div>
@@ -427,7 +448,13 @@ function getFileIcon(extension) {
     if (['xls', 'xlsx', 'csv'].includes(ext)) return FILE_ICONS.xlsx;
     if (['ppt', 'pptx'].includes(ext)) return FILE_ICONS.pptx;
     if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'tif', 'webp'].includes(ext)) return FILE_ICONS.image;
+    if (['md', 'markdown'].includes(ext)) return FILE_ICONS.markdown;
     return FILE_ICONS.default;
+}
+
+function isReverseConversion(extension) {
+    const ext = extension.toLowerCase().replace('.', '');
+    return ['md', 'markdown'].includes(ext);
 }
 
 function getStatusText(status) {

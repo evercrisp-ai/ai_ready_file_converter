@@ -3,56 +3,48 @@ AI Ready File Converter - Desktop Application
 Native macOS desktop app using pywebview and FastAPI.
 """
 
-# #region agent log
-import json as _json
-import os as _os
-from datetime import datetime as _datetime
-_LOG_PATH = "/Users/benscooper/ai-ready-file-converter/.cursor/debug.log"
-def _dbg(loc, msg, data, hyp):
-    try:
-        with open(_LOG_PATH, "a") as f:
-            f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": _datetime.now().isoformat(), "sessionId": "debug-session"}) + "\n")
-    except Exception as e:
-        pass
-# #endregion
-
-# #region agent log
-_dbg("desktop_app.py:1", "App starting - basic imports", {"frozen": getattr(__import__('sys'), 'frozen', False)}, "A")
-# #endregion
-
 import os
 import sys
 import socket
 import signal
+import subprocess
 import threading
 import time
 from pathlib import Path
 
-# #region agent log
-_dbg("desktop_app.py:18", "Standard imports successful, attempting webview import", {"sys_path": sys.path[:5]}, "C")
-# #endregion
+import webview
+import uvicorn
 
-try:
-    import webview
-    # #region agent log
-    _dbg("desktop_app.py:22", "webview import SUCCESS", {"webview_version": getattr(webview, '__version__', 'unknown')}, "C")
-    # #endregion
-except Exception as e:
-    # #region agent log
-    _dbg("desktop_app.py:22", "webview import FAILED", {"error": str(e), "error_type": type(e).__name__}, "C")
-    # #endregion
-    raise
 
-try:
-    import uvicorn
-    # #region agent log
-    _dbg("desktop_app.py:28", "uvicorn import SUCCESS", {}, "D")
-    # #endregion
-except Exception as e:
-    # #region agent log
-    _dbg("desktop_app.py:28", "uvicorn import FAILED", {"error": str(e), "error_type": type(e).__name__}, "D")
-    # #endregion
-    raise
+def get_system_appearance() -> str:
+    """Detect the system appearance (light/dark) on macOS."""
+    if sys.platform != "darwin":
+        return "light"
+    
+    try:
+        result = subprocess.run(
+            ["defaults", "read", "-g", "AppleInterfaceStyle"],
+            capture_output=True,
+            text=True,
+        )
+        # If "Dark" is returned, system is in dark mode
+        if result.returncode == 0 and "Dark" in result.stdout:
+            return "dark"
+    except Exception:
+        pass
+    
+    return "light"
+
+
+def get_window_background_color() -> str:
+    """Get the appropriate background color based on system appearance."""
+    appearance = get_system_appearance()
+    if appearance == "dark":
+        # Dark theme: --bg-gradient-start
+        return '#0c1020'
+    else:
+        # Light theme: --bg-gradient-start
+        return '#eef3fa'
 
 
 def get_app_data_dir() -> Path:
@@ -115,9 +107,6 @@ class ServerThread(threading.Thread):
             loop="asyncio",  # Use standard asyncio, not uvloop (uvloop doesn't work in py2app bundle)
         )
         self.server = uvicorn.Server(config)
-        # #region agent log
-        _dbg("desktop_app.py:run", "Starting uvicorn server", {"host": self.host, "port": self.port}, "D")
-        # #endregion
         self.server.run()
     
     def stop(self):
@@ -147,10 +136,6 @@ def on_window_closed():
 
 def main():
     """Main entry point for the desktop application."""
-    # #region agent log
-    _dbg("desktop_app.py:main:1", "main() entry point reached", {}, "A")
-    # #endregion
-    
     # Set environment variable to indicate we're running as a desktop app
     os.environ["AI_READY_DESKTOP_MODE"] = "true"
     
@@ -158,23 +143,9 @@ def main():
     app_data_dir = get_app_data_dir()
     os.environ["AI_READY_DATA_DIR"] = str(app_data_dir)
     
-    # #region agent log
-    _dbg("desktop_app.py:main:2", "Environment set, attempting main import", {"app_data_dir": str(app_data_dir), "sys_path": sys.path[:5]}, "A")
-    # #endregion
-    
     # Import the FastAPI app after setting environment variables
     # This ensures the app picks up our configuration
-    try:
-        from main import app
-        # #region agent log
-        _dbg("desktop_app.py:main:3", "main import SUCCESS", {}, "A")
-        # #endregion
-    except Exception as e:
-        # #region agent log
-        import traceback
-        _dbg("desktop_app.py:main:3", "main import FAILED", {"error": str(e), "error_type": type(e).__name__, "traceback": traceback.format_exc()}, "A")
-        # #endregion
-        raise
+    from main import app
     
     # Find an available port
     port = find_free_port()
@@ -190,6 +161,7 @@ def main():
         sys.exit(1)
     
     # Create the webview window
+    # Background color matches the system theme for a seamless title bar
     window = webview.create_window(
         title="AI Ready File Converter",
         url=f"http://{host}:{port}",
@@ -198,6 +170,7 @@ def main():
         min_size=(800, 600),
         resizable=True,
         text_select=True,
+        background_color=get_window_background_color(),
     )
     
     # Handle window close

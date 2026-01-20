@@ -15,21 +15,6 @@ from contextlib import asynccontextmanager
 import zipfile
 from io import BytesIO
 
-# #region agent log
-import json as _json
-import os as _os
-_LOG_PATH = _os.environ.get("DEBUG_LOG_PATH", "/tmp/ai_ready_debug.log")
-_DEBUG_ENABLED = _os.environ.get("DEBUG_LOGGING", "false").lower() == "true"
-def _dbg(loc, msg, data, hyp):
-    if not _DEBUG_ENABLED:
-        return
-    try:
-        with open(_LOG_PATH, "a") as f:
-            f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": datetime.now().isoformat(), "sessionId": "debug-session"}) + "\n")
-    except Exception:
-        pass  # Silently ignore logging failures in production
-# #endregion
-
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -39,6 +24,7 @@ from converters import (
     get_converter,
     get_default_format,
     get_supported_extensions,
+    is_reverse_converter,
 )
 
 # Configuration
@@ -117,10 +103,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# #region agent log
-_dbg("main.py:120", "Setting up static/templates paths", {"frozen": getattr(sys, 'frozen', False), "__file__": __file__}, "E")
-# #endregion
-
 def get_bundle_resource_path(relative_path: str) -> Path:
     """Get path to resources, works for both dev and py2app bundle."""
     if getattr(sys, 'frozen', False):
@@ -138,9 +120,6 @@ static_path = get_bundle_resource_path("static")
 if not getattr(sys, 'frozen', False):
     # Only create directories in dev mode, not in bundle
     static_path.mkdir(parents=True, exist_ok=True)
-# #region agent log
-_dbg("main.py:135", "Static path resolved", {"static_path": str(static_path), "exists": static_path.exists()}, "E")
-# #endregion
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Templates
@@ -148,9 +127,6 @@ templates_path = get_bundle_resource_path("templates")
 if not getattr(sys, 'frozen', False):
     # Only create directories in dev mode, not in bundle
     templates_path.mkdir(parents=True, exist_ok=True)
-# #region agent log
-_dbg("main.py:143", "Templates path resolved", {"templates_path": str(templates_path), "exists": templates_path.exists()}, "E")
-# #endregion
 templates = Jinja2Templates(directory=templates_path)
 
 
@@ -331,10 +307,6 @@ async def convert_files(request: Request):
             continue
         
         try:
-            # #region agent log
-            _dbg("main.py:290", "Starting conversion", {"file_id": file_id, "filename": file_info["filename"], "extension": file_info["extension"]}, "A")
-            # #endregion
-            
             # Get converter
             converter_class = get_converter(file_info["extension"])
             if not converter_class:
@@ -342,35 +314,47 @@ async def convert_files(request: Request):
             
             # Convert file
             upload_path = Path(file_info["upload_path"])
-            # #region agent log
-            _dbg("main.py:302", "Upload path check", {"path": str(upload_path), "exists": upload_path.exists()}, "A")
-            # #endregion
             converter = converter_class(upload_path)
             
-            output_format = file_info["output_format"]
-            # #region agent log
-            _dbg("main.py:308", "Calling get_output", {"output_format": output_format}, "A")
-            # #endregion
-            output_content = converter.get_output(output_format)
-            # #region agent log
-            _dbg("main.py:312", "get_output completed", {"output_length": len(output_content) if output_content else 0}, "C")
-            # #endregion
-            output_filename = converter.get_output_filename(output_format)
+            # Check if this is a reverse converter (MD to DOCX)
+            is_reverse = is_reverse_converter(file_info["extension"])
             
-            # Save converted file
-            converted_path = session_dir / "converted" / f"{file_id}_{output_filename}"
-            with open(converted_path, "w", encoding="utf-8") as f:
-                f.write(output_content)
+            if is_reverse:
+                # Reverse converters produce binary output
+                output_content = converter.convert()
+                output_format = converter._get_target_extension().lstrip('.')
+                # Use original filename, not the UUID-prefixed one
+                original_stem = Path(file_info["filename"]).stem
+                output_filename = f"{original_stem}_converted.{output_format}"
+                
+                # Save as binary
+                converted_path = session_dir / "converted" / f"{file_id}_{output_filename}"
+                with open(converted_path, "wb") as f:
+                    f.write(output_content)
+                
+                file_info["is_binary"] = True
+            else:
+                # Standard converters produce text output
+                output_format = file_info["output_format"]
+                output_content = converter.get_output(output_format)
+                # Use original filename, not the UUID-prefixed one
+                original_stem = Path(file_info["filename"]).stem
+                ext = '.json' if output_format.lower() == 'json' else '.md'
+                output_filename = f"{original_stem}_AI_converter{ext}"
+                
+                # Save as text
+                converted_path = session_dir / "converted" / f"{file_id}_{output_filename}"
+                with open(converted_path, "w", encoding="utf-8") as f:
+                    f.write(output_content)
+                
+                file_info["is_binary"] = False
             
             # Update file info
             file_info["status"] = "converted"
             file_info["converted_path"] = str(converted_path)
             file_info["output_filename"] = output_filename
+            file_info["output_format"] = output_format
             file_info["converted_at"] = datetime.now(timezone.utc).isoformat()
-            
-            # #region agent log
-            _dbg("main.py:328", "Conversion SUCCESS", {"file_id": file_id, "output_filename": output_filename}, "A")
-            # #endregion
             
             results.append({
                 "id": file_id,
@@ -382,10 +366,6 @@ async def convert_files(request: Request):
             })
             
         except Exception as e:
-            # #region agent log
-            import traceback
-            _dbg("main.py:343", "Conversion FAILED", {"file_id": file_id, "error": str(e), "error_type": type(e).__name__, "traceback": traceback.format_exc()}, "A")
-            # #endregion
             file_info["status"] = "error"
             file_info["error"] = str(e)
             results.append({
@@ -428,10 +408,21 @@ async def download_file(request: Request, file_id: str):
     
     session["last_activity"] = datetime.now(timezone.utc)
     
+    # Determine appropriate MIME type
+    output_format = file_info.get("output_format", "")
+    if output_format == "docx":
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif output_format == "json":
+        media_type = "application/json"
+    elif output_format == "md":
+        media_type = "text/markdown"
+    else:
+        media_type = "application/octet-stream"
+    
     return FileResponse(
         path=converted_path,
         filename=file_info["output_filename"],
-        media_type="application/octet-stream"
+        media_type=media_type
     )
 
 
@@ -458,6 +449,20 @@ async def preview_file(request: Request, file_id: str):
     if not converted_path.exists():
         raise HTTPException(status_code=404, detail="Converted file not found")
     
+    # Check if this is a binary file (e.g., docx)
+    is_binary = file_info.get("is_binary", False)
+    
+    if is_binary:
+        # Binary files can't be previewed as text
+        file_size = converted_path.stat().st_size
+        return {
+            "filename": file_info["output_filename"],
+            "format": file_info["output_format"],
+            "preview": f"[Binary file - {file_info['output_format'].upper()} document]\n\nFile size: {file_size:,} bytes\n\nDownload the file to view its contents.",
+            "full_size": file_size,
+            "is_binary": True
+        }
+    
     with open(converted_path, "r", encoding="utf-8") as f:
         content = f.read()
     
@@ -470,7 +475,8 @@ async def preview_file(request: Request, file_id: str):
         "filename": file_info["output_filename"],
         "format": file_info["output_format"],
         "preview": preview,
-        "full_size": len(content)
+        "full_size": len(content),
+        "is_binary": False
     }
 
 

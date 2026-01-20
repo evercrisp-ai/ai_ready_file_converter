@@ -8,22 +8,6 @@ from docx import Document
 from docx.table import Table
 from .base import BaseConverter
 
-# #region agent log
-import json as _json
-import os as _os
-from datetime import datetime as _dt
-_LOG_PATH = _os.environ.get("DEBUG_LOG_PATH", "/tmp/ai_ready_debug.log")
-_DEBUG_ENABLED = _os.environ.get("DEBUG_LOGGING", "false").lower() == "true"
-def _dbg(loc, msg, data, hyp):
-    if not _DEBUG_ENABLED:
-        return
-    try:
-        with open(_LOG_PATH, "a") as f:
-            f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": _dt.now().isoformat(), "sessionId": "debug-session"}) + "\n")
-    except Exception:
-        pass  # Silently ignore logging failures in production
-# #endregion
-
 
 class DocxConverter(BaseConverter):
     """Converter for Microsoft Word documents."""
@@ -33,19 +17,7 @@ class DocxConverter(BaseConverter):
     
     def _extract_content(self) -> dict:
         """Extract content from Word document."""
-        # #region agent log
-        _dbg("docx_converter.py:28", "Starting _extract_content", {"file_path": str(self.file_path)}, "A")
-        # #endregion
-        try:
-            doc = Document(self.file_path)
-            # #region agent log
-            _dbg("docx_converter.py:33", "Document loaded successfully", {"para_count": len(doc.paragraphs), "table_count": len(doc.tables)}, "A")
-            # #endregion
-        except Exception as e:
-            # #region agent log
-            _dbg("docx_converter.py:37", "Document loading FAILED", {"error": str(e), "error_type": type(e).__name__}, "A")
-            # #endregion
-            raise
+        doc = Document(self.file_path)
         
         content = {
             "text": "",
@@ -56,31 +28,17 @@ class DocxConverter(BaseConverter):
         
         full_text_parts = []
         
-        # #region agent log
-        body_elements = list(doc.element.body) if doc.element.body is not None else []
-        _dbg("docx_converter.py:48", "Body elements count", {"count": len(body_elements), "body_is_none": doc.element.body is None}, "B")
-        # #endregion
-        
         for element in doc.element.body:
             # Check if it's a paragraph
             if element.tag.endswith('p'):
-                # #region agent log
-                matched = False
-                # #endregion
                 for para in doc.paragraphs:
                     if para._element == element:
-                        # #region agent log
-                        matched = True
-                        # #endregion
                         text = para.text.strip()
                         if text:
-                            # #region agent log
                             try:
                                 style_name = para.style.name if para.style else ""
-                            except AttributeError as e:
-                                _dbg("docx_converter.py:68", "Style attribute error", {"error": str(e), "para_text": text[:50]}, "D")
+                            except AttributeError:
                                 style_name = ""
-                            # #endregion
                             
                             # Check if it's a heading
                             if style_name.startswith('Heading'):
@@ -99,44 +57,19 @@ class DocxConverter(BaseConverter):
                             })
                             full_text_parts.append(text)
                         break
-                # #region agent log
-                if not matched:
-                    _dbg("docx_converter.py:91", "Paragraph element NOT matched", {"tag": str(element.tag)}, "B")
-                # #endregion
             
             # Check if it's a table
             elif element.tag.endswith('tbl'):
-                # #region agent log
-                table_matched = False
-                # #endregion
                 for table in doc.tables:
                     if table._element == element:
-                        # #region agent log
-                        table_matched = True
-                        # #endregion
                         try:
                             table_data = self._extract_table(table)
                             content["tables"].append(table_data)
-                        except Exception as e:
-                            # #region agent log
-                            _dbg("docx_converter.py:109", "Table extraction FAILED", {"error": str(e)}, "E")
-                            # #endregion
+                        except Exception:
+                            pass  # Skip tables that fail to extract
                         break
-                # #region agent log
-                if not table_matched:
-                    _dbg("docx_converter.py:114", "Table element NOT matched", {"tag": str(element.tag)}, "E")
-                # #endregion
         
         content["text"] = "\n\n".join(full_text_parts)
-        
-        # #region agent log
-        _dbg("docx_converter.py:120", "Content extraction complete", {
-            "paragraphs_extracted": len(content["paragraphs"]),
-            "tables_extracted": len(content["tables"]),
-            "headings_extracted": len(content["headings"]),
-            "text_length": len(content["text"])
-        }, "C")
-        # #endregion
         
         # Update metadata
         self._metadata = {
