@@ -8,6 +8,7 @@ import sys
 import uuid
 import shutil
 import asyncio
+import re
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Optional
@@ -26,6 +27,14 @@ from converters import (
     get_supported_extensions,
     is_reverse_converter,
 )
+
+# Helper to strip UUID-like prefixes from filenames (8 hex chars + underscore)
+UUID_PREFIX_PATTERN = re.compile(r'^[a-f0-9]{8}_', re.IGNORECASE)
+
+def strip_uuid_prefix(filename: str) -> str:
+    """Remove any UUID-like prefix (8 hex chars + underscore) from a filename."""
+    return UUID_PREFIX_PATTERN.sub('', filename)
+
 
 # Configuration
 def get_upload_dir() -> Path:
@@ -323,8 +332,8 @@ async def convert_files(request: Request):
                 # Reverse converters produce binary output
                 output_content = converter.convert()
                 output_format = converter._get_target_extension().lstrip('.')
-                # Use original filename, not the UUID-prefixed one
-                original_stem = Path(file_info["filename"]).stem
+                # Use original filename, strip any UUID prefix to ensure clean output name
+                original_stem = strip_uuid_prefix(Path(file_info["filename"]).stem)
                 output_filename = f"{original_stem}_converted.{output_format}"
                 
                 # Save as binary
@@ -337,10 +346,10 @@ async def convert_files(request: Request):
                 # Standard converters produce text output
                 output_format = file_info["output_format"]
                 output_content = converter.get_output(output_format)
-                # Use original filename, not the UUID-prefixed one
-                original_stem = Path(file_info["filename"]).stem
+                # Use original filename, strip any UUID prefix to ensure clean output name
+                original_stem = strip_uuid_prefix(Path(file_info["filename"]).stem)
                 ext = '.json' if output_format.lower() == 'json' else '.md'
-                output_filename = f"{original_stem}_AI_converter{ext}"
+                output_filename = f"{original_stem}_converted{ext}"
                 
                 # Save as text
                 converted_path = session_dir / "converted" / f"{file_id}_{output_filename}"
