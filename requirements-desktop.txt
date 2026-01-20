@@ -1,0 +1,16 @@
+# AI Ready File Converter - Desktop App Dependencies
+# Install with: pip install -r requirements-desktop.txt
+
+# Include all base requirements
+-r requirements.txt
+
+# Desktop app framework
+pywebview>=5.0
+
+# macOS app bundler
+py2app>=0.28
+
+# Additional dependencies for bundling
+pyobjc-core>=10.0
+pyobjc-framework-Cocoa>=10.0
+pyobjc-framework-WebKit>=10.0

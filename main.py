@@ -41,7 +41,30 @@ from converters import (
 )
 
 # Configuration
-UPLOAD_DIR = Path("/tmp/ai_ready_file_converter")
+def get_upload_dir() -> Path:
+    """Get the upload directory, respecting desktop app mode."""
+    # Check if running as desktop app with custom data directory
+    custom_dir = os.environ.get("AI_READY_DATA_DIR")
+    if custom_dir:
+        return Path(custom_dir) / "uploads"
+    
+    # Check platform for appropriate default location
+    if os.environ.get("AI_READY_DESKTOP_MODE") == "true":
+        # Desktop mode: use platform-appropriate location
+        import sys
+        if sys.platform == "darwin":
+            base = Path.home() / "Library" / "Application Support" / "AIReadyConverter"
+        elif sys.platform == "win32":
+            app_data = os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")
+            base = Path(app_data) / "AIReadyConverter"
+        else:
+            base = Path.home() / ".local" / "share" / "AIReadyConverter"
+        return base / "uploads"
+    
+    # Default: use /tmp for web server mode
+    return Path("/tmp/ai_ready_file_converter")
+
+UPLOAD_DIR = get_upload_dir()
 MAX_TOTAL_SIZE = 10 * 1024 * 1024  # 10MB total limit
 SESSION_TIMEOUT_MINUTES = 15
 

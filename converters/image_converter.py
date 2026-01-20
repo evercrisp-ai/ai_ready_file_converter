@@ -12,12 +12,25 @@ from typing import Optional
 from PIL import Image
 from .base import BaseConverter
 
-# Try to import pytesseract, handle gracefully if not available
+# Try to import pytesseract and check if Tesseract binary is available
+TESSERACT_AVAILABLE = False
+TESSERACT_ERROR_MESSAGE = ""
+
 try:
     import pytesseract
+    # Test if the Tesseract binary is actually installed
+    pytesseract.get_tesseract_version()
     TESSERACT_AVAILABLE = True
 except ImportError:
-    TESSERACT_AVAILABLE = False
+    TESSERACT_ERROR_MESSAGE = "pytesseract package not installed"
+except pytesseract.TesseractNotFoundError:
+    TESSERACT_ERROR_MESSAGE = (
+        "Tesseract OCR is not installed. "
+        "Install it with: brew install tesseract (macOS) or "
+        "sudo apt-get install tesseract-ocr (Linux)"
+    )
+except Exception as e:
+    TESSERACT_ERROR_MESSAGE = f"Tesseract initialization error: {str(e)}"
 
 # Try to import vision module
 try:
@@ -130,12 +143,22 @@ class ImageConverter(BaseConverter):
                 try:
                     ocr_text = pytesseract.image_to_string(img_for_ocr)
                     content["ocr_text"] = ocr_text.strip()
+                    content["ocr_available"] = True
+                except pytesseract.TesseractNotFoundError:
+                    content["ocr_text"] = ""
+                    content["ocr_available"] = False
+                    content["ocr_error"] = (
+                        "Tesseract OCR binary not found. "
+                        "Install with: brew install tesseract (macOS)"
+                    )
                 except Exception as e:
-                    content["ocr_text"] = f"[OCR Error: {str(e)}]"
-                    content["ocr_error"] = str(e)
+                    content["ocr_text"] = ""
+                    content["ocr_available"] = True  # Tesseract exists but failed on this image
+                    content["ocr_error"] = f"OCR processing error: {str(e)}"
             else:
-                content["ocr_text"] = "[OCR not available - Tesseract not installed]"
+                content["ocr_text"] = ""
                 content["ocr_available"] = False
+                content["ocr_error"] = TESSERACT_ERROR_MESSAGE or "Tesseract OCR not available"
             
             # Base64 encode the image
             # Use original format if possible, fallback to PNG
@@ -170,12 +193,17 @@ class ImageConverter(BaseConverter):
             "format": content["image_format"],
             "width": content["dimensions"]["width"],
             "height": content["dimensions"]["height"],
+            "ocr_available": content.get("ocr_available", True),
             "ocr_word_count": len(content["ocr_text"].split()) if content["ocr_text"] else 0,
             "base64_size_bytes": len(content["base64_data"]),
             "vision_analysis_success": vision_result.get("success", False),
             "vision_provider": vision_result.get("provider"),
             "vision_model": vision_result.get("model"),
         }
+        
+        # Include OCR error in metadata if present
+        if content.get("ocr_error"):
+            self._metadata["ocr_error"] = content["ocr_error"]
         
         return content
     
@@ -254,12 +282,16 @@ class ImageConverter(BaseConverter):
         md_parts.append("## Extracted Text (OCR)")
         md_parts.append("")
         
-        if content["ocr_text"] and not content["ocr_text"].startswith("["):
+        if content.get("ocr_available", True) and content["ocr_text"]:
             md_parts.append("```")
             md_parts.append(content["ocr_text"])
             md_parts.append("```")
+        elif content.get("ocr_error"):
+            md_parts.append(f"*{content['ocr_error']}*")
+        elif not content["ocr_text"]:
+            md_parts.append("*No text detected in image*")
         else:
-            md_parts.append(f"*{content['ocr_text']}*")
+            md_parts.append("*OCR not available*")
         
         md_parts.append("")
         
@@ -318,9 +350,14 @@ class ImageConverter(BaseConverter):
         # Add content (OCR and base64)
         result["content"] = {
             "ocr_text": content["ocr_text"],
+            "ocr_available": content.get("ocr_available", True),
             "base64_data": content["base64_data"],
             "base64_mime": content.get("base64_mime", "image/png"),
             "base64_data_uri": f"data:{content.get('base64_mime', 'image/png')};base64,{content['base64_data']}"
         }
+        
+        # Include OCR error if present
+        if content.get("ocr_error"):
+            result["content"]["ocr_error"] = content["ocr_error"]
         
         return result

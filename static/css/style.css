@@ -44,9 +44,9 @@
    ======================================== */
 
 [data-theme="dark"] {
-    --bg-base: #0a0f0d;
-    --bg-gradient-start: #0c1210;
-    --bg-gradient-end: #141f1a;
+    --bg-base: #0a0d1a;
+    --bg-gradient-start: #0c1020;
+    --bg-gradient-end: #151a30;
     
     /* Glass colors */
     --glass-bg: rgba(255, 255, 255, 0.03);
@@ -56,12 +56,15 @@
     --glass-border-hover: rgba(255, 255, 255, 0.15);
     --glass-blur: 20px;
     
-    /* Accent colors - teal/keel green */
-    --accent-primary: #14b8a6;
-    --accent-secondary: #0d9488;
-    --accent-tertiary: #2dd4bf;
-    --accent-glow: rgba(20, 184, 166, 0.2);
-    --accent-dim: rgba(20, 184, 166, 0.08);
+    /* Accent colors - cyan theme */
+    --accent-primary: #0cc0df;
+    --accent-secondary: #0aadc9;
+    --accent-tertiary: #2ed0ef;
+    --accent-purple: #0cc0df;
+    --accent-magenta: #0cc0df;
+    --accent-glow: rgba(12, 192, 223, 0.25);
+    --accent-dim: rgba(12, 192, 223, 0.08);
+    --gradient-accent: linear-gradient(135deg, #0cc0df 0%, #0cc0df 100%);
     
     /* Text colors */
     --text-primary: #f8fafc;
@@ -71,20 +74,22 @@
     /* Borders */
     --border-subtle: rgba(255, 255, 255, 0.04);
     --border-default: rgba(255, 255, 255, 0.08);
-    --border-accent: rgba(20, 184, 166, 0.3);
+    --border-accent: rgba(12, 192, 223, 0.3);
     
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 40px rgba(20, 184, 166, 0.15);
+    --shadow-glow: 0 0 40px rgba(12, 192, 223, 0.2);
+    --shadow-glow-purple: 0 0 40px rgba(12, 192, 223, 0.15);
     
     /* Ambient orbs */
-    --orb-1: rgba(20, 184, 166, 0.08);
-    --orb-2: rgba(45, 212, 191, 0.05);
+    --orb-1: rgba(12, 192, 223, 0.1);
+    --orb-2: rgba(12, 192, 223, 0.08);
+    --orb-3: rgba(12, 192, 223, 0.06);
     
     /* Button text on accent */
-    --btn-primary-text: #021a17;
+    --btn-primary-text: #021a20;
 }
 
 /* ========================================
@@ -92,9 +97,9 @@
    ======================================== */
 
 [data-theme="light"] {
-    --bg-base: #f8fafb;
-    --bg-gradient-start: #f1f5f4;
-    --bg-gradient-end: #e2ebe8;
+    --bg-base: #f5f8fc;
+    --bg-gradient-start: #eef3fa;
+    --bg-gradient-end: #e0eaf5;
     
     /* Glass colors */
     --glass-bg: rgba(255, 255, 255, 0.6);
@@ -104,12 +109,15 @@
     --glass-border-hover: rgba(0, 0, 0, 0.1);
     --glass-blur: 20px;
     
-    /* Accent colors - teal/keel green, slightly deeper for contrast */
-    --accent-primary: #0d9488;
-    --accent-secondary: #0f766e;
-    --accent-tertiary: #14b8a6;
-    --accent-glow: rgba(13, 148, 136, 0.2);
-    --accent-dim: rgba(13, 148, 136, 0.08);
+    /* Accent colors - cyan theme for light mode */
+    --accent-primary: #0aa8c2;
+    --accent-secondary: #0991a8;
+    --accent-tertiary: #0cc0df;
+    --accent-purple: #0aa8c2;
+    --accent-magenta: #0aa8c2;
+    --accent-glow: rgba(12, 192, 223, 0.2);
+    --accent-dim: rgba(12, 192, 223, 0.08);
+    --gradient-accent: linear-gradient(135deg, #0cc0df 0%, #0cc0df 100%);
     
     /* Text colors */
     --text-primary: #0f172a;
@@ -119,17 +127,19 @@
     /* Borders */
     --border-subtle: rgba(0, 0, 0, 0.04);
     --border-default: rgba(0, 0, 0, 0.08);
-    --border-accent: rgba(13, 148, 136, 0.3);
+    --border-accent: rgba(12, 192, 223, 0.3);
     
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
     --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
-    --shadow-glow: 0 0 40px rgba(13, 148, 136, 0.1);
+    --shadow-glow: 0 0 40px rgba(12, 192, 223, 0.15);
+    --shadow-glow-purple: 0 0 40px rgba(12, 192, 223, 0.1);
     
     /* Ambient orbs */
-    --orb-1: rgba(13, 148, 136, 0.06);
-    --orb-2: rgba(20, 184, 166, 0.04);
+    --orb-1: rgba(12, 192, 223, 0.08);
+    --orb-2: rgba(12, 192, 223, 0.06);
+    --orb-3: rgba(12, 192, 223, 0.04);
     
     /* Button text on accent */
     --btn-primary-text: #ffffff;
@@ -167,9 +177,10 @@ body {
     /* Background */
     background: var(--bg-base);
     background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, var(--orb-1), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 0%, var(--orb-2), transparent),
-        radial-gradient(ellipse 50% 30% at 0% 100%, var(--orb-1), transparent);
+        radial-gradient(ellipse 80% 50% at 20% -20%, var(--orb-1), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 30%, var(--orb-2), transparent),
+        radial-gradient(ellipse 50% 40% at 80% 100%, var(--orb-3), transparent),
+        radial-gradient(ellipse 40% 30% at 0% 80%, var(--orb-1), transparent);
     background-attachment: fixed;
 }
 
@@ -180,7 +191,7 @@ body::after {
     position: fixed;
     border-radius: 50%;
     filter: blur(100px);
-    opacity: 0.4;
+    opacity: 0.5;
     pointer-events: none;
     z-index: -1;
     transition: opacity var(--transition-slow);
@@ -191,15 +202,15 @@ body::before {
     height: 600px;
     background: radial-gradient(circle, var(--orb-1) 0%, transparent 70%);
     top: -200px;
-    right: -100px;
+    left: -100px;
 }
 
 body::after {
     width: 500px;
     height: 500px;
     background: radial-gradient(circle, var(--orb-2) 0%, transparent 70%);
-    bottom: -150px;
-    left: -100px;
+    bottom: -100px;
+    right: -100px;
 }
 
 /* ========================================
@@ -246,20 +257,25 @@ body::after {
     font-size: 1.75rem;
     font-weight: 600;
     letter-spacing: -0.02em;
-    color: var(--text-primary);
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .logo-icon {
-    font-family: var(--font-mono);
-    font-size: 1.5rem;
-    color: var(--accent-primary);
-    opacity: 0.6;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    filter: drop-shadow(0 0 12px var(--accent-glow));
 }
 
 .tagline {
     color: var(--text-secondary);
     font-size: 1rem;
     font-weight: 400;
+    opacity: 0.9;
 }
 
 /* ========================================
@@ -372,12 +388,13 @@ body::after {
     border-style: solid;
     background: var(--glass-bg-elevated);
     transform: scale(1.01) translateY(-2px);
-    box-shadow: var(--shadow-lg), 0 0 60px var(--accent-glow);
+    box-shadow: var(--shadow-lg), 0 0 60px var(--accent-glow), 0 0 80px var(--shadow-glow-purple);
 }
 
 .drop-zone.dragover::before {
     opacity: 1;
-    background: radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 30% 30%, var(--accent-glow) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(12, 192, 223, 0.15) 0%, transparent 50%);
 }
 
 .drop-zone-content {
@@ -395,8 +412,16 @@ body::after {
     transition: all var(--transition-base);
 }
 
+.drop-icon svg {
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
 .drop-zone:hover .drop-icon {
     transform: translateY(-6px);
+}
+
+.drop-zone:hover .drop-icon svg {
+    filter: drop-shadow(0 0 12px var(--accent-glow)) drop-shadow(0 0 20px var(--shadow-glow-purple));
 }
 
 .drop-zone-content h2 {
@@ -434,8 +459,8 @@ body::after {
 
 .format-tag:hover {
     background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-    color: var(--text-primary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
 }
 
 /* ========================================
@@ -576,7 +601,7 @@ body::after {
 }
 
 .format-btn.active {
-    background: var(--accent-primary);
+    background: var(--gradient-accent);
     color: var(--btn-primary-text);
     box-shadow: 0 2px 12px var(--accent-glow);
 }
@@ -833,20 +858,21 @@ body::after {
 }
 
 .btn-primary {
-    background: var(--accent-primary);
+    background: var(--gradient-accent);
     color: var(--btn-primary-text);
-    box-shadow: 0 4px 20px var(--accent-glow);
+    box-shadow: 0 4px 20px var(--accent-glow), 0 4px 20px var(--shadow-glow-purple);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--accent-secondary);
-    box-shadow: 0 6px 30px var(--accent-glow);
+    box-shadow: 0 6px 30px var(--accent-glow), 0 6px 30px var(--shadow-glow-purple);
     transform: translateY(-2px);
+    filter: brightness(1.1);
 }
 
 .btn-primary:active:not(:disabled) {
     transform: translateY(0);
     box-shadow: 0 2px 12px var(--accent-glow);
+    filter: brightness(1);
 }
 
 .btn-secondary {
@@ -1114,4 +1140,26 @@ body::after {
 ::selection {
     background: var(--accent-glow);
     color: var(--text-primary);
+}
+
+/* ========================================
+   Circuit Pattern Background
+   ======================================== */
+
+.container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 40%;
+    height: 100%;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
+    background-image: 
+        linear-gradient(90deg, var(--accent-primary) 1px, transparent 1px),
+        linear-gradient(var(--accent-primary) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: linear-gradient(135deg, transparent 30%, black 70%);
+    -webkit-mask-image: linear-gradient(135deg, transparent 30%, black 70%);
 }
