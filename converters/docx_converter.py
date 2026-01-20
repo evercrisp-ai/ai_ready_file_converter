@@ -10,11 +10,18 @@ from .base import BaseConverter
 
 # #region agent log
 import json as _json
+import os as _os
 from datetime import datetime as _dt
-_LOG_PATH = "/Users/benscooper/ai-ready-file-converter/.cursor/debug.log"
+_LOG_PATH = _os.environ.get("DEBUG_LOG_PATH", "/tmp/ai_ready_debug.log")
+_DEBUG_ENABLED = _os.environ.get("DEBUG_LOGGING", "false").lower() == "true"
 def _dbg(loc, msg, data, hyp):
-    with open(_LOG_PATH, "a") as f:
-        f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": _dt.now().isoformat(), "sessionId": "debug-session"}) + "\n")
+    if not _DEBUG_ENABLED:
+        return
+    try:
+        with open(_LOG_PATH, "a") as f:
+            f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": _dt.now().isoformat(), "sessionId": "debug-session"}) + "\n")
+    except Exception:
+        pass  # Silently ignore logging failures in production
 # #endregion
 
 
