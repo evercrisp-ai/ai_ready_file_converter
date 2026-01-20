@@ -16,7 +16,7 @@ from io import BytesIO
 
 # #region agent log
 import json as _json
-_LOG_PATH = "/Users/benscooper/human_format_to_ai_converter/.cursor/debug.log"
+_LOG_PATH = "/Users/benscooper/ai-ready-file-converter/.cursor/debug.log"
 def _dbg(loc, msg, data, hyp):
     with open(_LOG_PATH, "a") as f:
         f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": datetime.now().isoformat(), "sessionId": "debug-session"}) + "\n")
@@ -34,7 +34,7 @@ from converters import (
 )
 
 # Configuration
-UPLOAD_DIR = Path("/tmp/human_to_ai_converter")
+UPLOAD_DIR = Path("/tmp/ai_ready_file_converter")
 MAX_TOTAL_SIZE = 10 * 1024 * 1024  # 10MB total limit
 SESSION_TIMEOUT_MINUTES = 15
 

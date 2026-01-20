@@ -1,5 +1,5 @@
 /**
- * Human → AI Converter
+ * AI-Ready File Converter
  * Frontend JavaScript for file uploads, conversion, and downloads
  */
 

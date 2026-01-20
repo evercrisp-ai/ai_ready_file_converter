@@ -1,5 +1,5 @@
 """
-Converter registry for Human-to-AI Format Converter.
+Converter registry for AI-Ready File Converter.
 Maps file extensions to their appropriate converter classes.
 """
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """
-Image converter for Human-to-AI Format Converter.
+Image converter for AI-Ready File Converter.
 Extracts text via OCR, provides Base64 encoding, and generates
 hyper-detailed Vision AI analysis for near-identical reproduction.
 """

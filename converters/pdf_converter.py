@@ -1,5 +1,5 @@
 """
-PDF converter for Human-to-AI Format Converter.
+PDF converter for AI-Ready File Converter.
 Extracts text and tables from PDF documents using pdfplumber.
 """
 

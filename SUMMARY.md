@@ -1,8 +1,8 @@
-# Human → AI Format Converter: Summary
+# AI-Ready File Converter: Summary
 
 ## What It Is
 
-A web-based tool that converts everyday human documents into formats optimized for AI processing. It bridges the gap between human-readable files and AI-consumable data.
+A web-based tool that converts everyday documents into formats optimized for AI processing. It bridges the gap between human-readable files and AI-consumable data.
 
 ## What It Does
 

@@ -1,5 +1,5 @@
 """
-Base converter class for Human-to-AI Format Converter.
+Base converter class for AI-Ready File Converter.
 All specific converters inherit from this class.
 """
 

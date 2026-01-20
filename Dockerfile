@@ -1,4 +1,4 @@
-# Human-to-AI Format Converter
+# AI-Ready File Converter
 # Docker image with Tesseract OCR support
 
 FROM python:3.11-slim

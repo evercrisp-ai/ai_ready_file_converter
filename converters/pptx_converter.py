@@ -1,5 +1,5 @@
 """
-PowerPoint (.pptx) converter for Human-to-AI Format Converter.
+PowerPoint (.pptx) converter for AI-Ready File Converter.
 Extracts text from slides including titles, content, and notes.
 """
 

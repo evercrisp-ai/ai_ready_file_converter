@@ -1,5 +1,5 @@
 """
-Excel/CSV converter for Human-to-AI Format Converter.
+Excel/CSV converter for AI-Ready File Converter.
 Extracts tabular data from spreadsheets, optimized for JSON output.
 """
 

@@ -1,5 +1,5 @@
 """
-Word document (.docx) converter for Human-to-AI Format Converter.
+Word document (.docx) converter for AI-Ready File Converter.
 Extracts text, headings, paragraphs, and tables from Word documents.
 """
 
@@ -11,7 +11,7 @@ from .base import BaseConverter
 # #region agent log
 import json as _json
 from datetime import datetime as _dt
-_LOG_PATH = "/Users/benscooper/human_format_to_ai_converter/.cursor/debug.log"
+_LOG_PATH = "/Users/benscooper/ai-ready-file-converter/.cursor/debug.log"
 def _dbg(loc, msg, data, hyp):
     with open(_LOG_PATH, "a") as f:
         f.write(_json.dumps({"location": loc, "message": msg, "data": data, "hypothesisId": hyp, "timestamp": _dt.now().isoformat(), "sessionId": "debug-session"}) + "\n")
