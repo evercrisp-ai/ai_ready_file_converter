@@ -4,6 +4,7 @@ FastAPI application for converting human documents to AI-ready formats.
 """
 
 import os
+import sys
 import uuid
 import shutil
 import asyncio
@@ -116,14 +117,40 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# #region agent log
+_dbg("main.py:120", "Setting up static/templates paths", {"frozen": getattr(sys, 'frozen', False), "__file__": __file__}, "E")
+# #endregion
+
+def get_bundle_resource_path(relative_path: str) -> Path:
+    """Get path to resources, works for both dev and py2app bundle."""
+    if getattr(sys, 'frozen', False):
+        # Running in a py2app bundle - use Resources directory
+        # sys.executable is in .app/Contents/MacOS/, Resources is at .app/Contents/Resources/
+        import sys as _sys
+        base_path = Path(_sys.executable).parent.parent / "Resources"
+    else:
+        # Running in development
+        base_path = Path(__file__).parent
+    return base_path / relative_path
+
 # Mount static files
-static_path = Path(__file__).parent / "static"
-static_path.mkdir(parents=True, exist_ok=True)
+static_path = get_bundle_resource_path("static")
+if not getattr(sys, 'frozen', False):
+    # Only create directories in dev mode, not in bundle
+    static_path.mkdir(parents=True, exist_ok=True)
+# #region agent log
+_dbg("main.py:135", "Static path resolved", {"static_path": str(static_path), "exists": static_path.exists()}, "E")
+# #endregion
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Templates
-templates_path = Path(__file__).parent / "templates"
-templates_path.mkdir(parents=True, exist_ok=True)
+templates_path = get_bundle_resource_path("templates")
+if not getattr(sys, 'frozen', False):
+    # Only create directories in dev mode, not in bundle
+    templates_path.mkdir(parents=True, exist_ok=True)
+# #region agent log
+_dbg("main.py:143", "Templates path resolved", {"templates_path": str(templates_path), "exists": templates_path.exists()}, "E")
+# #endregion
 templates = Jinja2Templates(directory=templates_path)
 
 

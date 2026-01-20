@@ -62,12 +62,8 @@ try:
 except ImportError:
     pass
 
-# Try to include google-generativeai if available
-try:
-    import google.generativeai
-    PACKAGES.extend(["google", "google.generativeai"])
-except ImportError:
-    pass
+# Skip google-generativeai - namespace packages cause py2app issues
+# The app will work without Google AI features
 
 OPTIONS = {
     "argv_emulation": False,
@@ -133,6 +129,14 @@ OPTIONS = {
         "test",
         "tests",
         "unittest",
+        "google",
+        "google.generativeai",
+        "google.ai",
+        "google.auth",
+        "google.api_core",
+        "grpc",
+        "grpcio",
+        "uvloop",  # uvloop C extensions don't work properly in py2app bundle
     ],
     "site_packages": True,
     "strip": True,
